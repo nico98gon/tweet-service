@@ -8,33 +8,38 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func GetTweets(ID string, page int64) ([]*tweets.ReturnTweets , bool) {
+func GetTweets(ID string, cursor string) ([]*tweets.ReturnTweets, bool, error) {
 	ctx := context.TODO()
 
 	db := MongoCN.Database(DatabaseName)
 	col := db.Collection("tweets")
 
 	var results []*tweets.ReturnTweets
-	condition := bson.M{"user_id": ID}
+
+	filter := bson.M{"user_id": ID}
+	if cursor != "" {
+		filter["_id"] = bson.M{"$lt": cursor}
+	}
 
 	options := options.Find()
 	options.SetLimit(20)
-	options.SetSort((bson.D{{Key: "date", Value: -1}}))
-	options.SetSkip((page - 1) * 20)
+	options.SetSort(bson.D{{Key: "date", Value: -1}})
 
-	cursor, err := col.Find(ctx, condition, options)
+	cursorResult, err := col.Find(ctx, filter, options)
 	if err != nil {
-		return results, false
+		return results, false, err
 	}
 
-	for cursor.Next(ctx) {
+	for cursorResult.Next(ctx) {
 		var register tweets.ReturnTweets
-		err := cursor.Decode(&register)
+		err := cursorResult.Decode(&register)
 		if err != nil {
-			return results, false
+			return results, false, err
 		}
 		results = append(results, &register)
 	}
 
-	return results, true
+	hasMore := len(results) == 20
+
+	return results, hasMore, nil
 }

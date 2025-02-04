@@ -2,7 +2,6 @@ package routers
 
 import (
 	"fmt"
-	"strconv"
 	"tweet-service/internal/domain"
 	"tweet-service/internal/infrastructure/db"
 	"tweet-service/utils"
@@ -21,32 +20,24 @@ func ReadTweets(request events.APIGatewayProxyRequest) domain.RespAPI {
 		return r
 	}
 	fmt.Println("ID:", ID)
-	page := request.QueryStringParameters["page"]
-	if len(page) < 1 {
-		page = "1"
-	}
 
-	pageInt, err := strconv.Atoi(page)
+	cursor := request.QueryStringParameters["cursor"]
+
+	tweets, hasMore, err := db.GetTweets(ID, cursor)
 	if err != nil {
-		r.Message = "Error al parsear el page: " + err.Error()
-		return r
-	}
-
-	tweets, ok := db.GetTweets(ID, int64(pageInt))
-	if !ok {
 		r.Message = "Error al buscar los tweets: " + err.Error()
 		return r
+	}
+
+	var nextCursor string
+	if len(tweets) > 0 {
+		nextCursor = tweets[len(tweets)-1].ID.Hex()
 	}
 
 	r.Status = 200
 	r.Message = "OK"
 	r.Data = tweets
-	r.Meta = utils.Pagination{
-		TotalPages:  0,
-		CurrentPage: pageInt,
-		NextPage:    0,
-		HasNext:     false,
-	}
+	r.Meta = utils.Pagination(hasMore, nextCursor)
 
 	return r
 }
