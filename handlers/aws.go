@@ -25,15 +25,15 @@ func AwsHandler(ctx context.Context, request events.APIGatewayProxyRequest) doma
 
 	fmt.Println("Autenticación exitosa")
 	switch ctx.Value(domain.Key("method")).(string) {
-	// case "GET":
-	// 	fmt.Println("Método GET detectado")
-	// 	switch ctx.Value(domain.Key("path")).(string) {
-	// 	case "profile":
-	// 		fmt.Println("Procesando perfil de usuario...")
-	// 		r = routers.Profile(request, claim)
-	// 		fmt.Println("Perfil de usuario finalizado:", r.Message)
-	// 		return r
-	// 	}
+	case "GET":
+		fmt.Println("Método GET detectado")
+		switch ctx.Value(domain.Key("path")).(string) {
+		case "read-tweets":
+			fmt.Println("Leyendo tweets...")
+			r = routers.ReadTweets(request)
+			fmt.Println("Tweets obtenidos:", r.Message)
+			return r
+		}
 
 	case "POST":
 		fmt.Println("Método POST detectado")
