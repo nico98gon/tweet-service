@@ -45,15 +45,15 @@ func AwsHandler(ctx context.Context, request events.APIGatewayProxyRequest) doma
 			return r
 		}
 
-	// case "PUT":
-	// 	fmt.Println("Método PUT detectado")
-	// 	switch ctx.Value(domain.Key("path")).(string) {
-	// 	case "update-profile":
-	// 		fmt.Println("Procesando actualización de perfil de usuario...")
-	// 		r = routers.UpdateProfile(ctx, claim)
-	// 		fmt.Println("Actualización de perfil de usuario finalizada:", r.Message)
-	// 		return r
-	// 	}
+	case "DELETE":
+		fmt.Println("Método DELETE detectado")
+		switch ctx.Value(domain.Key("path")).(string) {
+		case "delete-tweet":
+			fmt.Println("Procesando borrado de tweet...")
+			r = routers.DeleteTweet(request, claim)
+			fmt.Println("Eliminación finalizada:", r.Message)
+			return r
+		}
 	}
 
 	fmt.Println("Método inválido detectado")
