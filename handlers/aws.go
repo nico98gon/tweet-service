@@ -33,6 +33,12 @@ func AwsHandler(ctx context.Context, request events.APIGatewayProxyRequest) doma
 			r = routers.ReadTweets(request)
 			fmt.Println("Tweets obtenidos:", r.Message)
 			return r
+
+		case "followers-tweets":
+			fmt.Println("Leyendo tweets de los seguidores...")
+			r = routers.FollowersTweets(request, claim)
+			fmt.Println("Tweets obtenidos:", r.Message)
+			return r
 		}
 
 	case "POST":
