@@ -1,5 +1,5 @@
 package tweets
 
 type Tweet struct {
-	Content string 							`json:"content"`
+	Content string	`json:"content"`
 }
