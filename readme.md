@@ -77,22 +77,35 @@ Para poder buildear y subir nuestro .zip a lambda en AWS, deberemos ejecutar:
 
 ## Variables de entorno
 
-# Enviroment and ports
+#### Enviroment and ports
 APP_ENV=local
 PORT=8082 #8081 #8083...
 
-# AWS
-# AWS_REGION="sa-east-1"
+#### AWS
+#### AWS_REGION="sa-east-1"
 BUCKET_NAME= # Nombre de tu S3 Bucket 
 SECRET_NAME= # Nombre de tu Secret Manager
 URL_PREFIX= # Prefijo de URL API Gateway
 
-# BCRYPT & JWT
+#### BCRYPT & JWT
 BCRYPT_COST=6 # 6 para local está bien, 8 para desarrollo y 10 para producción
 JWT_SIGN=EsteEsEl-TokenDeNico-PARA-ENTR-uala
 
-# Database
+#### Database
 DB_USERNAME=
 DB_PASSWORD=
 DB_HOST=
 DB_DATABASE=
+
+
+## Eficiencia en Timeline
+
+La obtención de tweets es una de las aristas más cruciales del proyecto, ya que representa una gran carga de trabajo para el mismo. Vemos como podemos optimizar estas peticiones utilizando las siguientes estrategias:
+
+### Goroutines
+
+Utilizar golang tiene grandes ventajas, una de ellas es la de las goroutines, esto permite manejar ciertas tareas de manera concurrente, como la obtención de tweets de diferentes usuarios o la realización de múltiples operaciones de base de datos en paralelo.
+
+#### Caché con Redis
+
+Esta estrategia permite implementar un sistema que puede reducir significativamente la carga en la base de datos y mejorar los tiempos de respuesta. Permite almacenar en Redis los tweets más recientes o los tweets más populares, y servir esos datos desde la caché en lugar de hacer consultas a la base de datos cada vez que se necesiten.
