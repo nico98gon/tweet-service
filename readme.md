@@ -35,15 +35,16 @@ En el desafío se intentará llegar a dividir los microservicios en repositorios
 
 ### Servicios de AWS:
 
-- **Lambda**: Desplegar funciones ejectuables que contendrán los microservicios buildeados en binarios de Go en archivos .zip
-- **Api Gateway**: Api que conectar y manejar todas las peticiones y respuestas Rest con los microservicios en Lambda
+- **Lambda**: Desplegar funciones serverless que contendrán los microservicios buildeados en binarios de Go en archivos .zip
+- **Api Gateway**: Api para conectar y manejar todas las peticiones y respuestas Rest con los microservicios en Lambda
 - **Secret Manager**: Administrar credenciales de la base de datos
 - **S3**: Buckets que permiten contener y adminstrar archivos pesados como imagenes que llaman los microservicios en lambda
-- **Cloud Watch**: Visualizar logs y métricas de nuestros lambdas
+- **Cloud Watch**: Visualizar logs y métricas de las lambdas
 
 ### Base de datos:
 
 La base de datos es no relacional específicamente **MongoDB**, esto para un desarrollo rápido del desafío y por sus ventajas de flexibilidad de los datos. Pero como el desafío pide escalabilidad por si los usuarios escalan rápidamente, se pensó en una arquitectura DDD **Domain Driven Design** que permite centrarce en el dominio y así separar la lógica de negocio de las funciones de la base de datos y servicios externos. Esto es una gran ventaja si luego se requiere migrar algún microservicio a alguna base de datos relacional como **PostgreSQL** ó **MySQL**. Yo particularmente migraría el microservicio de usuarios a Postgres para mantener concistencia de los datos y evitar duplicados.
+
 
 ### Arquitectura
 
@@ -70,57 +71,13 @@ La base de datos es no relacional específicamente **MongoDB**, esto para un des
 - **Sharding en MongoDB**: Particionado de colecciones por rangos de userID.
 - **Separación de escrituras/lecturas**: Conexiones a réplicas de MongoDB para queries.
 
-## Comandos de ejecución
-
-### Requisitos previos
-- Go 1.23+
-- MongoDB local o en Docker
-- AWS CLI configurado
-
-### Ejecutar con Docker (recomendado):
-
-docker-compose up
-APP_ENV=local go run main.go
-
-#### Local
-
-Para poder correr la aplicación en local se debe instalar y configurar el CLI de AWS:
-
-``````
-curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-unzip awscliv2.zip
-sudo ./aws/install
-``````
-
-Configurar credenciales:
-
-Las creedenciales se pueden obtener en la sección de personas en el servicio IAM que tenga acceso a los servicios AWS que se utilizan
-
-`aws configure`
-
-Verificar que las credenciales están configuradas:
-
-`cat ~/.aws/credentials`
-
-#### Producción
-
-Para poder buildear y subir nuestro .zip a lambda en AWS, deberemos ejecutar:
-
-```
-`docker build -t user-service-lambda -f Dockerfile.lambda`
-`docker run --rm -v $(pwd):/output user-service-lambda cp /output/user-service.zip /output`
-```
-
-ó a través de build_lambda.sh:
-
-- Damos permisos de ejecución: `chmod +x build_lambda.sh`
-- Corremos el archivo: `./build_lambda.sh`
-
 ## Variables de entorno
+
+En los microservicios existe un archivo llamado .env.example que contiene las variables de entorno de ejemplo, si no acá también están:
 
 #### Enviroment and ports
 APP_ENV=local
-PORT=8082 #8081 #8083...
+PORT=8081 #8082 #8083...
 
 #### AWS
 #### AWS_REGION="sa-east-1"
@@ -138,12 +95,63 @@ DB_PASSWORD=
 DB_HOST=
 DB_DATABASE=
 
+## Comandos de ejecución
+
+### Requisitos previos
+- Go 1.23+
+- MongoDB local o en Docker
+- AWS CLI configurado
+
+### Local
+
+Para poder correr la aplicación en local se debe instalar y configurar el CLI de AWS:
+
+``````
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+``````
+
+Configurar credenciales:
+
+`aws configure`
+
+Verificar que las credenciales están configuradas:
+
+`cat ~/.aws/credentials`
+
+#### Ejecutar con Docker (recomendado):
+
+Lo primero será crear un docker-compose.yml en la ruta principal del proyecto que contiene los microservicios, luego será copiar el contenido de docker-compose-no-exec que está en la ruta principal de user-service en este nuevo docker compose.
+
+Para poder levantar todos los microservicios deberá ejecutar:
+
+`docker-compose up --build`
+
+### Producción
+
+Para poder buildear y subir nuestro .zip a lambda en AWS, deberemos ejecutar:
+
+```
+`docker build -t user-service-lambda -f Dockerfile.lambda`
+`docker run --rm -v $(pwd):/output user-service-lambda cp /output/user-service.zip /output`
+```
+
+ó a través de build_lambda.sh:
+
+- Damos permisos de ejecución: `chmod +x build_lambda.sh`
+- Corremos el archivo: `./build_lambda.sh`
+
 
 ## Endpoints
 
-Se dejará el archivo exportado de postman, y se puede acceder al team en postman desde:
+Se dejará el archivo exportado de postman en la carpeta /postman junto con un readme que contiene las variables del mismo, y se puede acceder al team en postman desde:
 
 https://app.getpostman.com/join-team?invite_code=a9c8ad1d529219cd5c04a27e3bc99d0ae594cac0442bf11c54b336008aeddd5d&target_code=7727bc70ac0f7b184e82cf86cd76a3f9
+
+`Nota Importante`:
+
+La forma más rápida y sencilla de probar la aplicación es utilizando las variables de entorno en postman para apuntar a las ya desplegadas lambdas. Pueden encontrar estas variables en los readme de la carpeta /postman.
 
 ### API (User Service)
 
